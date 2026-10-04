@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# dati privati dell'impianto: mai nel repository
+captures/
+*.pcap
+*.mitm
+*.db
+*.local.json
+relay/postino_jobs.sqlite3*
+relay/bridge_state.json*
+relay/.bridge-state-*

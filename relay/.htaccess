@@ -1,0 +1,5 @@
+# Nega l'accesso web al file di stato della bacheca (Apache).
+# Su hosting non-Apache (nginx/LiteSpeed) replicare la regola nel pannello.
+<FilesMatch "(\.(json|state|lock|sqlite3|py)$|^\.bridge-state-)">
+    Require all denied
+</FilesMatch>
