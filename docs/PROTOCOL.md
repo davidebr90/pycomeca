@@ -1,5 +1,7 @@
 # Protocollo locale ICONA (porta 64100)
 
+English version: [docs/en/PROTOCOL.md](en/PROTOCOL.md).
+
 Appunti sul dialogo tra client e monitor in rete locale. Provato su 6741W (modello interno `MSVF`, firmware 2.1.0). Gli indirizzi negli esempi sono fittizi.
 
 Dove un punto viene da riferimenti pubblici per il 6701W e non è stato riprovato sul 6741W, è indicato.

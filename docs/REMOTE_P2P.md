@@ -1,5 +1,7 @@
 # Percorso remoto: cloud P2P (`viper_p2p_v2`)
 
+English version: [docs/en/REMOTE_P2P.md](en/REMOTE_P2P.md).
+
 Come l'app raggiunge il monitor da fuori casa, e come lo rifà questo client. Tutti gli indirizzi e le credenziali negli esempi sono fittizi.
 
 ## Idea di fondo

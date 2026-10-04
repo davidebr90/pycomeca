@@ -1,5 +1,7 @@
 # Relay: aprire da fuori senza il cloud del produttore
 
+Versione inglese: [README.en.md](README.en.md).
+
 Alternativa al percorso remoto P2P. Usa due pezzi:
 
 - `bridge.php`, una pagina su un hosting qualsiasi con HTTPS. Non parla mai con il citofono: tiene in coda un solo tipo di richiesta, "apri", e ne conserva l'esito.

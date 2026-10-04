@@ -1,5 +1,7 @@
 # Come ci si è arrivati
 
+English version: [docs/en/DEBUG_FLOW.md](en/DEBUG_FLOW.md).
+
 Questo è il percorso di studio, in ordine, con gli strumenti usati e gli errori fatti. Può servire a chi vuole ripetere il lavoro su un altro modello.
 
 ## Strumenti

@@ -2,101 +2,107 @@
 
 # PyCOMECA
 
-Aprire il portone di casa con un comando, senza passare dall'app ufficiale del videocitofono.
+Open your front gate with a single command, without going through the official video-intercom app.
 
-PyCOMECA è un client Python, senza dipendenze esterne, per i videocitofoni Comelit della famiglia ViP. Parla direttamente con il citofono sulla rete di casa (protocollo ICONA, porta 64100) oppure da fuori casa attraverso lo stesso percorso cloud P2P usato dall'app.
+🇬🇧 English (this page) · 🇮🇹 [Italiano](README.it.md)
 
-Il nome: **Py** come Python, **COME** da Comelit, **CA** da casa. Inizio e fine insieme fanno PYCA, che si legge come Pica, il cognome di chi lo ha scritto.
+PyCOMECA is a dependency-free Python client for Comelit ViP video intercoms. It talks to the intercom directly on your home network (ICONA protocol, port 64100) or from outside through the same cloud P2P path the app uses.
 
-## Perché esiste
+The name: **Py** for Python, **COME** from Comelit, **CA** from *casa* (home, in Italian). Start and end together read as PYCA, pronounced like Pica, the surname of the person who wrote it.
 
-L'app ufficiale non offre un'azione rapida: per aprire il portone bisogna avviarla, aspettare la connessione e passare da più schermate. Io volevo un comando solo, da richiamare da un sistema domotico, da uno script o da un comando rapido del telefono. Non avendo trovato una via ufficiale, ho studiato come l'app parla con il citofono e ho riscritto quel dialogo in Python.
+## Why it exists
 
-Il progetto raccoglie sia il codice sia gli appunti di studio: formato dei messaggi, sequenza di apertura, percorso remoto e metodo usato per arrivarci.
+The official app offers no quick action: to open the gate you launch it, wait for the connection and move through several screens. I wanted a single command, callable from a home-automation system, a script or a phone shortcut. Finding no official way, I studied how the app talks to the intercom and rewrote that conversation in Python.
 
-## Stato delle verifiche
+The project collects both the code and the study notes: message format, open sequence, remote path and the method used to get there.
 
-| Funzione | Stato |
+## Verification status
+
+| Capability | Status |
 |---|---|
-| Lettura configurazione e rubrica in rete locale | provata sull'impianto reale |
-| Apertura portone in rete locale, con evento di conferma dal citofono | provata sull'impianto reale |
-| Percorso remoto (OAuth, `p2p/start`, ICE, PseudoTCP): lettura configurazione | provata sull'impianto reale, anche forzando il relay pubblico |
-| Percorso remoto da una rete diversa da quella di casa | non ancora provato |
-| Apertura portone dal percorso remoto | non ancora provata |
-| Ascolto continuo degli eventi (squillo), audio e video | non implementati |
+| Read configuration and address book on the local network | tested on the real device |
+| Open the gate on the local network, with a confirmation event from the intercom | tested on the real device |
+| Remote path (OAuth, `p2p/start`, ICE, PseudoTCP): read configuration | tested on the real device, including forcing the public relay |
+| Remote path from a network other than home | not yet tested |
+| Opening the gate over the remote path | not yet tested |
+| Continuous event listening (ring), audio and video | not implemented |
 
-I test automatici (37) girano senza citofono: usano un dispositivo simulato e dati fittizi.
+The automated tests (37) run without an intercom: they use a simulated device and fictitious data.
 
-## Dispositivi
+## Devices
 
-| Dispositivo | Esito |
+| Device | Outcome |
 |---|---|
-| Comelit Mini Wi-Fi **6741W** (modello interno `MSVF`, firmware 2.1.0), impianto SimpleBus2 | provato direttamente |
-| Comelit **6701W** | non provato da me; il protocollo locale coincide con quello documentato dai progetti citati in fondo |
+| Comelit Mini Wi-Fi **6741W** (internal model `MSVF`, firmware 2.1.0), SimpleBus2 system | tested directly |
+| Comelit **6701W** | not tested by me; the local protocol matches the one documented by the projects credited at the bottom |
 
-L'app usata come riferimento per lo studio è Comelit per Android, versione 7.5.0.
+The app used as a reference for the study is Comelit for Android, version 7.5.0.
 
-## Cosa serve
+## What you need
 
-Vedi [docs/DATI.md](docs/DATI.md) per il dettaglio di ogni dato, il formato atteso e dove trovarlo. In breve:
+See [docs/en/DATA.md](docs/en/DATA.md) for every field, its expected format and where to find it. In short:
 
-- indirizzo IP del citofono in rete locale (solo per il percorso locale);
-- **user-token** del citofono, 32 caratteri esadecimali;
-- per il percorso remoto: credenziali dell'account Comelit e `deviceUuid` del citofono.
+- the intercom's IP address on the local network (local path only);
+- the intercom's **user-token**, 32 hexadecimal characters;
+- for the remote path: your Comelit account credentials and the intercom's `deviceUuid`.
 
-Tutti gli identificativi che compaiono in questo repository (indirizzi, token, UUID, IP, nomi) sono **inventati**, ma hanno la stessa forma di quelli reali.
+Every identifier that appears in this repository (addresses, tokens, UUIDs, IPs, names) is **fictitious**, but has the same shape as a real one.
 
-## Uso
+## Usage
 
-Serve Python 3.11 o successivo. Nessun pacchetto da installare.
+Python 3.11 or later. No packages to install.
 
-Percorso locale, dalla rete di casa:
+Local path, from your home network:
 
 ```
-cp installation.example.json installation.local.json   # poi metti l'IP del tuo citofono
-export COMELIT_TOKEN=<user-token di 32 caratteri hex>
+cp installation.example.json installation.local.json   # then set your intercom's IP
+export COMELIT_TOKEN=<32-hex user-token>
 python pycomeca_ctl.py --list
 python pycomeca_ctl.py --open "Portone principale"
 ```
 
-Percorso remoto, da qualsiasi rete:
+Remote path, from any network:
 
 ```
-export COMELIT_USER=<email account Comelit>
-export COMELIT_PASS=<password account Comelit>
-export COMELIT_DEVICE_UUID=<deviceUuid del citofono>
-export COMELIT_TOKEN=<user-token di 32 caratteri hex>
+export COMELIT_USER=<Comelit account email>
+export COMELIT_PASS=<Comelit account password>
+export COMELIT_DEVICE_UUID=<intercom deviceUuid>
+export COMELIT_TOKEN=<32-hex user-token>
 python -m pycomeca.remote --list
 python -m pycomeca.remote --open "Portone principale"
 ```
 
-`--relay-only` forza il passaggio dal relay pubblico anche quando si è in casa, utile per provare il percorso esterno. `--verbose` mostra la sequenza dei passaggi.
+`--relay-only` forces the public relay even when you are at home, useful to test the external path. `--verbose` prints the sequence of steps.
 
-Nessun comando apre il portone se non c'è `--open`. Ogni sessione invia al massimo un comando di apertura e non lo ripete mai da sola.
+No command opens the gate without `--open`. Each session sends at most one open command and never repeats it on its own.
 
-Test:
+Tests:
 
 ```
 python -m unittest discover -s tests
 ```
 
-## Contenuto
+## Contents
 
-- `pycomeca/` client locale: framing ICONA, canali, autenticazione, configurazione, apertura.
-- `pycomeca/remote/` trasporto remoto: SDP, STUN, ICE, PseudoTCP, chiamate al cloud.
-- `pycomeca_bridge.py` piccolo servizio HTTP locale (`POST /open`) da tenere dietro VPN.
-- `relay/` alternativa senza cloud Comelit: una pagina PHP su hosting e un piccolo agente in casa che fa solo connessioni in uscita. Vedi [relay/README.md](relay/README.md).
-- `tools/frida/` script usati per osservare l'app durante lo studio.
-- `docs/` appunti: [protocollo](docs/PROTOCOL.md), [percorso remoto](docs/REMOTE_P2P.md), [metodo di studio](docs/DEBUG_FLOW.md), [dati necessari](docs/DATI.md).
+- `pycomeca/` local client: ICONA framing, channels, authentication, configuration, opening.
+- `pycomeca/remote/` remote transport: SDP, STUN, ICE, PseudoTCP, cloud calls.
+- `pycomeca_bridge.py` small local HTTP service (`POST /open`) to keep behind a VPN.
+- `relay/` an alternative without the Comelit cloud: a PHP page on shared hosting and a small in-home agent that only makes outbound connections. See [relay/README.md](relay/README.md).
+- `tools/frida/` scripts used to observe the app during the study.
+- `docs/` notes, in English under [docs/en/](docs/en/) and in Italian under [docs/](docs/): [protocol](docs/en/PROTOCOL.md), [remote path](docs/en/REMOTE_P2P.md), [study method](docs/en/DEBUG_FLOW.md), [required data](docs/en/DATA.md).
 
-## Avvertenze
+## Warnings
 
-- Progetto indipendente, non affiliato né approvato da Comelit Group. I marchi appartengono ai rispettivi proprietari.
-- Pensato per l'uso sul proprio impianto. Non usarlo su impianti di cui non sei titolare o per cui non hai il permesso.
-- Il user-token è statico e sul filo viaggia in chiaro: non esporre mai la porta 64100 su internet e non pubblicare catture di rete o copie del database dell'app.
-- Il protocollo non è documentato dal produttore. Un aggiornamento del firmware o del cloud può far smettere di funzionare tutto senza preavviso.
-- L'evento di conferma dice che il citofono ha eseguito il comando, non che la serratura si sia mossa: dipende dal cablaggio.
+- Independent project, not affiliated with or endorsed by Comelit Group. Trademarks belong to their respective owners.
+- Intended for use on your own system. Do not use it on systems you do not own or are not authorised to operate.
+- The user-token is static and travels in clear text on the wire: never expose port 64100 to the internet, and never publish network captures or copies of the app database.
+- The protocol is not documented by the manufacturer. A firmware or cloud update can break everything without notice.
+- The confirmation event means the intercom executed the command, not that the lock moved: that depends on the wiring.
 
-## Riconoscimenti
+## Credits
 
-Lo studio del protocollo locale deve molto a lavori già pubblici: [comelit-client](https://github.com/madchicken/comelit-client) di Pierpaolo Follia, [ha-component-comelit-intercom](https://github.com/nicolas-fricke/ha-component-comelit-intercom) di Nicolas Fricke, gli articoli di [grdw](https://grdw.nl/2023/01/28/my-intercom-part-1.html) e le integrazioni per Home Assistant con riferimenti verificati su cattura per il 6701W. La parte sul percorso remoto P2P è frutto dello studio descritto in questo repository.
+The study of the local protocol owes much to earlier public work: [comelit-client](https://github.com/madchicken/comelit-client) by Pierpaolo Follia, [ha-component-comelit-intercom](https://github.com/nicolas-fricke/ha-component-comelit-intercom) by Nicolas Fricke, the articles by [grdw](https://grdw.nl/2023/01/28/my-intercom-part-1.html) and the Home Assistant integrations with capture-verified references for the 6701W. The remote P2P path is the result of the study described in this repository.
+
+## License
+
+[AGPL-3.0](LICENSE). Copyright (C) 2026 davidebr90.

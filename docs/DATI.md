@@ -1,5 +1,7 @@
 # Dati necessari e loro formato
 
+English version: [docs/en/DATA.md](en/DATA.md).
+
 Tutti i valori di esempio sono inventati. Hanno però la stessa forma di quelli reali, così puoi riconoscere i tuoi.
 
 ## Dati che devi fornire
