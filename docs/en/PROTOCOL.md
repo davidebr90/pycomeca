@@ -121,6 +121,50 @@ Possible outcomes: `opened_confirmed`, `sent_unconfirmed` (sent, no return event
 | 24199 UDP | discovery: sending `INFO`, the monitor replies with its own data |
 | 8080 / 8443 | web administration page |
 
-## Not covered
+## Full channel list
 
-Continuous event listening with registration renewal, video and audio call (RTP, H.264, G.711 A-law). The public references for the 6701W describe them; they are neither implemented nor verified here.
+Beyond those used in the minimal session, the app also opens or meets these. Where not re-tested on the 6741W it is marked [R] (6701W reference).
+
+| Name | Enum id | "type" field | Use |
+|---|---|---|---|
+| INFO | 0 | 20 | server information |
+| PUSH | 1 | 2 | notifications |
+| ECHO | 2 | 7 | keeping the remote session alive |
+| UAUT | 3 | 7 | authentication |
+| UADM | 4 | - | user administration [R] |
+| UCFG | 5 | 2 | configuration |
+| FACT | 6 | - | factory settings [R] |
+| CTPP | 7 | 16 | events and opening |
+| CSPB | 8 | 17 | accompanies CTPP |
+| ECHO_SRV | 9 | - | server-side echo [R] |
+| FRCG | 10 | 7 | face recognition |
+| UDPM | - | - | media control during a call [R] |
+| RTPC, RTPC2 | - | - | RTP flow during a call [R] |
+
+The "type" field is the one observed in clear text (for four-letter names it is often 7). Media channels are opened with a final byte set to 1.
+
+## CTPP: the three timestamp regimes
+
+The CTPP channel uses three different ways of computing the timestamp in acknowledgements. Mixing them makes the device stop sending events, silently.
+
+1. **Event acknowledgement** (for every `0x18C0`, `0x1840`, `0x1860` that is not a renewal): derived from the device's timestamp, setting the high bit of the first byte and swapping two bytes with an increment. [R]
+2. **Renewal acknowledgement** (`0x1860 / 0x0010`): derived from your own init timestamp plus a fixed constant (`0x01010000`); answer with the pair `0x1800` then `0x1820`. Never derive it from the device's timestamp. A mistake here silently kills all events. [R]
+3. **Call counters** (video setup): per-byte increments of the 32-bit field; the call's initial timestamp must differ from the init one in bytes 2-3, or the call is refused. [R]
+
+Golden rule: the door-opened event `0x1860 / 0x0003` must never be acknowledged; any acknowledgement is refused and the device retransmits it a few times before stopping. That is why about three of them are seen. [D]
+
+## Continuous event listening
+
+To receive ring and opening continuously, instead of opening a transient CTPP for each opening you keep one CTPP (plus CSPB) open and handle registration renewal. [R]
+
+1. open CTPP and CSPB;
+2. send the initial registration (`0x18C0` with capability `0x18C2` on the 6741W [D], `0xAC23` in other references);
+3. the device replies `0x1800` and enters the renewal cycle;
+4. at each `0x1860 / 0x0010` answer with the pair of acknowledgements using timestamp regime 2;
+5. rings arrive as `0x18C0` or `0x1860 / 0x0001`; opening as `0x1860 / 0x0003`.
+
+For an always-on in-home listener, a dedicated sub-address is advisable, so the phone sharing the same token is not evicted. [R]
+
+## Not covered in PyCOMECA
+
+Continuous event listening and the video/audio call (UDPM/RTPC channels, RTP, H.264, G.711 A-law) are documented here but not implemented. The detail is in [CALL](CALL.md). The public references for the 6701W describe them; on the 6741W they largely remain to be re-tested.

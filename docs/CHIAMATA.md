@@ -1,0 +1,66 @@
+# Videochiamata: segnalazione, video e audio
+
+Come avviene una chiamata completa col posto esterno (video e audio bidirezionale) e come scorre il media. English version: [docs/en/CALL.md](en/CALL.md).
+
+Questa parte **non è implementata** in PyCOMECA e **non è stata riprovata sul 6741W**: è documentata per completezza, soprattutto da riferimenti pubblici verificati su cattura per il 6701W. Livello di evidenza:
+
+- **[R]** riferimento 6701W, non riprovato qui;
+- **[D]** osservato anche sul 6741W.
+
+Il framing dei frame e i canali base sono in [PROTOCOLLO](PROTOCOL.md); i messaggi JSON in [MESSAGGI](MESSAGGI.md).
+
+## Canali usati in chiamata
+
+| Nome | Note |
+|---|---|
+| CTPP | segnalazione della chiamata e apertura porta durante la chiamata |
+| UDPM | controllo del media [R] |
+| RTPC, RTPC2 | flusso RTP; uno lo apre il dispositivo verso il client [R] |
+
+I canali media si aprono come un canale di tipo UAUT ma con un byte finale (`trailing_byte`) a 1. [R]
+
+## Avvio dal client (outbound) [R]
+
+Sequenza, a chiamata uscente verso il posto esterno:
+
+1. `call_init` CTPP `0x18C0 / 0x0028`, con orario di chiamata uguale all'orario di init più 1;
+2. apertura di UDPM, avvio del ricevitore RTP, due pacchetti di scoperta e un keepalive ogni 1,5 s;
+3. negoziazione del codec: `0x1840 / 0x0008` con parametro `0x27`, scambio e conferma;
+4. apertura di RTPC e RTPC2, `rtpc_link` `0x1840 / 0x000A` (senza incremento del contatore);
+5. `VIDEO_CONFIG` `0x1840 / 0x001A` a 800x480: è il messaggio che fa partire il flusso RTP del dispositivo;
+6. si attende l'RTPC che il dispositivo apre verso di noi e si conferma il suo link (con incremento `BYTE5`);
+7. `HANGUP/ZERO` `0x1840 / 0x0000` avvia un contratto di durata di circa 30 s;
+8. avvio del media, ed eventualmente `answer_peer` `0x1840 / 0x0070`.
+
+Rinnovo del contratto (~30 s, il dispositivo invia `0x1840 / 0x0003`): si rifà la sequenza sulla stessa connessione TCP, senza riconnettere.
+
+## Chiamata entrante (inbound) [R]
+
+- **passiva**: si conferma lo squillo con un orario derivato da quello dello squillo; raffica di RTPC, UDPM e codec (parametro `0x07`); `rtpc2_ready` `0x1840 / 0x0003` con flag `0x000A` (obbligatorio); `VIDEO_CONFIG` a 320x240. Il video scorre ma la chiamata non è ancora risposta;
+- **risposta**: `answer_peer` più `call_accepted` `0x1840 / 0x0002` (ruoli invertiti: qui lo manda il client). Parte l'audio (PCMA) sul canale RTPC aperto dal dispositivo.
+
+Differenze principali tra uscente ed entrante: codec `0x27` contro `0x07`; risoluzione 800x480 contro 320x240; media di norma su UDP in uscita, su TCP in entrata per questa integrazione.
+
+## Video [R] (parziale [D])
+
+- parte in SD (320x240 a 192 kbps) e, dopo la risposta, l'app passa a HD 800x480 a 1000 kbps; [D] lo switch SD/HD è stato osservato;
+- il tasto HD alterna a mano le due risoluzioni, cambiando risoluzione preferita e bitrate;
+- il video è H.264. I NAL singoli (tipi 1..23, IDR 5, SPS 7, PPS 8) diventano Annex-B con prefisso `00 00 00 01`; i frammenti FU-A (tipo 28) si riassemblano con i bit di inizio e fine e l'header NAL ricostruito.
+
+## Audio [R]
+
+- G.711 **PCMA** (A-law), 8 kHz, frame da 20 ms uguali a 160 byte esatti;
+- il microfono parte muto; lo si attiva con il comando di stato del microfono;
+- in uscita: timestamp +160 per frame, sequenza +1 per frame, silenzio come byte `0xD5` ripetuto.
+
+## RTP [D]
+
+Header standard RFC 3550, 12 byte, big-endian. Tipo di payload nel secondo byte: `PT=8` PCMA, `PT=0` PCMU, un tipo dinamico per H.264. Su UDP il dispositivo rimanda l'RTP incapsulato nel framing ICONA, da cui va estratto; su TCP arriva già pulito e inizia con `0x80`.
+
+## Esposizione
+
+Due strade, entrambe non incluse qui: un server RTSP locale che offre H.264 e PCMA a un lettore come VLC o a go2rtc, oppure il consumo diretto delle code di NAL e audio in un'interfaccia propria.
+
+## Da validare sul 6741W
+
+Risoluzioni e bitrate effettivi, il valore reale dell'incremento di rinnovo della registrazione (un valore errato spegne gli eventi in silenzio), i tre regimi di timestamp CTPP sotto chiamata, e la capacità media effettiva. Finché non sono ripresi su cattura propria, restano marcati [R].

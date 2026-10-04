@@ -123,6 +123,50 @@ Esiti possibili: `opened_confirmed`, `sent_unconfirmed` (inviato, nessun evento 
 | 24199 UDP | scoperta: inviando `INFO` il monitor risponde con i propri dati |
 | 8080 / 8443 | pagina web di amministrazione |
 
-## Non coperto
+## Elenco completo dei canali
 
-Ascolto continuo degli eventi con rinnovo della registrazione, chiamata video e audio (RTP, H.264, G.711 A-law). I riferimenti pubblici per il 6701W li descrivono; qui non sono implementati né verificati.
+Oltre a quelli usati nella sessione minima, l'app apre o incontra anche questi. Dove non ancora riprovato sul 6741W è marcato [R] (riferimento 6701W).
+
+| Nome | Id enum | Campo "tipo" | Uso |
+|---|---|---|---|
+| INFO | 0 | 20 | informazioni sul server |
+| PUSH | 1 | 2 | notifiche |
+| ECHO | 2 | 7 | mantenimento sessione remota |
+| UAUT | 3 | 7 | autenticazione |
+| UADM | 4 | - | amministrazione utenti [R] |
+| UCFG | 5 | 2 | configurazione |
+| FACT | 6 | - | impostazioni di fabbrica [R] |
+| CTPP | 7 | 16 | eventi e apertura |
+| CSPB | 8 | 17 | accompagna CTPP |
+| ECHO_SRV | 9 | - | eco lato server [R] |
+| FRCG | 10 | 7 | riconoscimento facciale |
+| UDPM | - | - | controllo media in chiamata [R] |
+| RTPC, RTPC2 | - | - | flusso RTP in chiamata [R] |
+
+Il campo "tipo" è quello osservato in chiaro (per nomi di quattro lettere vale spesso 7). I canali media si aprono con un byte finale a 1.
+
+## CTPP: i tre regimi di timestamp
+
+Il canale CTPP usa tre modi diversi di calcolare l'orario nelle conferme. Mescolarli fa smettere il dispositivo di inviare eventi, in silenzio.
+
+1. **Conferma di evento** (per ogni `0x18C0`, `0x1840`, `0x1860` che non sia un rinnovo): si deriva dall'orario del dispositivo, ponendo il bit alto del primo byte e scambiando due byte con un incremento. [R]
+2. **Conferma di rinnovo** (`0x1860 / 0x0010`): si deriva dal proprio orario di init sommando una costante fissa (`0x01010000`); va risposta con la coppia `0x1800` poi `0x1820`. Mai derivarla dall'orario del dispositivo. Un errore qui spegne tutti gli eventi senza segnalazione. [R]
+3. **Contatori di chiamata** (impostazione video): incrementi per singolo byte del campo a 32 bit; l'orario iniziale della chiamata deve differire da quello dell'init nei byte 2-3, o la chiamata è rifiutata. [R]
+
+Regola d'oro: l'evento di porta aperta `0x1860 / 0x0003` non va mai confermato; ogni conferma viene rifiutata e il dispositivo lo ritrasmette qualche volta prima di smettere. Per questo se ne vedono circa tre. [D]
+
+## Ascolto continuo degli eventi
+
+Per ricevere squillo e apertura in modo continuo, invece di aprire un CTPP transiente per ogni apertura si tiene aperto un CTPP (più CSPB) e si gestisce il rinnovo della registrazione. [R]
+
+1. aprire CTPP e CSPB;
+2. inviare la registrazione iniziale (`0x18C0` con la capacità `0x18C2` sul 6741W [D], `0xAC23` su altri riferimenti);
+3. il dispositivo risponde `0x1800` ed entra nel ciclo di rinnovo;
+4. a ogni `0x1860 / 0x0010` rispondere con la coppia di conferme usando il regime 2 dei timestamp;
+5. gli squilli arrivano come `0x18C0` oppure `0x1860 / 0x0001`; l'apertura come `0x1860 / 0x0003`.
+
+Per un ascolto sempre attivo in casa conviene un sottoindirizzo dedicato, così il telefono che condivide lo stesso token non viene espulso. [R]
+
+## Non coperto in PyCOMECA
+
+L'ascolto continuo degli eventi e la chiamata video/audio (canali UDPM/RTPC, RTP, H.264, G.711 A-law) sono qui documentati ma non implementati. Il dettaglio è in [CHIAMATA](CHIAMATA.md). I riferimenti pubblici per il 6701W li descrivono; sul 6741W restano in gran parte da riprovare.

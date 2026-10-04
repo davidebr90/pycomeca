@@ -89,7 +89,7 @@ python -m unittest discover -s tests
 - `pycomeca_bridge.py` piccolo servizio HTTP locale (`POST /open`) da tenere dietro VPN.
 - `relay/` alternativa senza cloud Comelit: una pagina PHP su hosting e un piccolo agente in casa che fa solo connessioni in uscita. Vedi [relay/README.md](relay/README.md).
 - `tools/frida/` script usati per osservare l'app durante lo studio.
-- `docs/` appunti: [protocollo](docs/PROTOCOL.md), [percorso remoto](docs/REMOTE_P2P.md), [metodo di studio](docs/DEBUG_FLOW.md), [dati necessari](docs/DATI.md).
+- `docs/` appunti: [protocollo](docs/PROTOCOL.md), [catalogo messaggi](docs/MESSAGGI.md), [videochiamata](docs/CHIAMATA.md), [percorso remoto](docs/REMOTE_P2P.md), [metodo di studio](docs/DEBUG_FLOW.md), [dati necessari](docs/DATI.md).
 
 ## Avvertenze
 
