@@ -67,13 +67,15 @@ def main(argv: list[str] | None = None) -> int:
                                      description="Apertura/consultazione via cloud P2P (viper_p2p_v2)")
     parser.add_argument("--list", action="store_true", help="autentica e mostra la rubrica, senza aprire")
     parser.add_argument("--open", metavar="TARGET", help="apri il target indicato (chiave door:N o nome)")
+    parser.add_argument("--devices", action="store_true",
+                        help="elenca i citofoni dell'account e il loro deviceUuid (serve solo USER/PASS)")
     parser.add_argument("--relay-only", action="store_true",
                         help="forza il percorso esterno: solo candidato relay del device, niente LAN")
     parser.add_argument("--config", metavar="FILE", help="file KEY=VALUE con le credenziali")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args(argv)
-    if not args.list and not args.open:
-        parser.error("specifica --list oppure --open TARGET")
+    if not args.list and not args.open and not args.devices:
+        parser.error("specifica --list, --open TARGET oppure --devices")
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -88,19 +90,31 @@ def main(argv: list[str] | None = None) -> int:
     if not user or not password:
         print("Imposta COMELIT_USER e COMELIT_PASS.", file=sys.stderr)
         return 2
-    if not device_uuid:
-        print("Imposta COMELIT_DEVICE_UUID (deviceUuid del citofono).", file=sys.stderr)
-        return 2
-
-    profile = Profile(host="192.0.2.1")   # host nominale: in remoto non viene contattato
-    viper_token = profile.token()
-    ufrag, pwd = _ice_credentials()
 
     try:
         oauth_token = p2p.oauth_login(user, password)
     except p2p.SignalingError as exc:
         print(f"Login OAuth fallito: {exc}", file=sys.stderr)
         return 1
+
+    # --devices needs only the login: discover the deviceUuid to put in the config.
+    if args.devices:
+        try:
+            devices = p2p.jfs_list(oauth_token)
+        except p2p.SignalingError as exc:
+            print(f"Elenco dispositivi fallito: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(devices, indent=2, ensure_ascii=False))
+        return 0
+
+    if not device_uuid:
+        print("Imposta COMELIT_DEVICE_UUID (deviceUuid del citofono). "
+              "Puoi scoprirlo con: python -m pycomeca.remote --devices", file=sys.stderr)
+        return 2
+
+    profile = Profile(host="192.0.2.1")   # host nominale: in remoto non viene contattato
+    viper_token = profile.token()
+    ufrag, pwd = _ice_credentials()
 
     client = RemoteIconaClient(profile, oauth_token, device_uuid, viper_token, ufrag, pwd,
                                relay_only=args.relay_only)

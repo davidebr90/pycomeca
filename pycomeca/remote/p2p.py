@@ -80,6 +80,32 @@ def oauth_login(username: str, password: str, timeout: float = 15.0) -> str:
     return token
 
 
+def jfs_list(access_token: str, timeout: float = 15.0) -> list[dict]:
+    """List the account's ViP devices. Returns [{uuid, name, model, is_owner}].
+
+    The deviceUuid needed by p2p/start is the entry's ownerUuid. Only the OAuth
+    bearer is required (no viper token), so this lets a user discover the uuid.
+    """
+    body = json.dumps({"ccapi": {
+        "version": "1.1.0",
+        "login": {"bearer": access_token},
+        "endpoint": {"requuid": str(secrets.randbelow(10**9)), "service": "jfs/lst", "version": "1.1.0"},
+        "body": {"name": None, "tag": {"value": "VIP_CONNECTION", "regex": False, "caseInsensitive": True}},
+    }}).encode()
+    raw = _post(f"{BASE}/servicerest/jfs/lst", body,
+                {"Content-Type": "application/json", "Accept": "application/json",
+                 "Authorization": f"Bearer {access_token}", "User-Agent": USER_AGENT}, timeout)
+    entries = (((json.loads(raw) or {}).get("ccapi") or {}).get("body") or {}).get("entries") or []
+    out = []
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        out.append({"uuid": e.get("ownerUuid"), "name": e.get("name"),
+                    "model": (e.get("metadata") or {}).get("model-id"),
+                    "is_owner": bool(e.get("isOwner"))})
+    return out
+
+
 def p2p_start(access_token: str, device_uuid: str, viper_token: str,
               offer_sdp: str, timeout: float = 15.0) -> str:
     """Send the SDP offer, return the device's answer SDP (decoded text)."""

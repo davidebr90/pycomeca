@@ -22,22 +22,46 @@ cd pycomeca-main
 
 Ora sei nella cartella del progetto (`~/Documents/pycomeca-main`).
 
-## 3. Crea il file delle credenziali
+## 3. I quattro parametri: cosa sono e dove si prendono
 
-Nella stessa cartella crea un file `pycomeca.conf` con i tuoi valori. Il modo più comodo: apri l'app **File** → **Su iPhone** → **a-Shell** → `pycomeca-main`, crea lì `pycomeca.conf` e incolla queste righe con i TUOI dati (questi sono fittizi):
+Tutti i valori sono inventati, servono solo a farti riconoscere il formato.
+
+| Parametro | Cos'è | Dove si prende |
+|---|---|---|
+| `COMELIT_USER` | email del tuo account Comelit | la stessa che usi per entrare nell'app ufficiale |
+| `COMELIT_PASS` | password dell'account | la stessa dell'app ufficiale |
+| `COMELIT_DEVICE_UUID` | identificativo del citofono (es. `1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001`) | lo scopri da solo al passo 4 con il comando `--devices` |
+| `COMELIT_TOKEN` | user-token del citofono, 32 cifre esadecimali (es. `0123456789abcdef0123456789abcdef`) | dalla pagina web del citofono sulla porta 8080 (backup impostazioni, file `users.cfg`, riga tipo `9:4:"<32 esadecimali>"`), oppure dal database dell'app Android (`systems.token`). Dettagli in [DATI](DATI.md) |
+
+## 4. Crea il file delle credenziali (prima con 3 valori)
+
+Nella cartella `pycomeca-main` crea un file `pycomeca.conf`. Il modo più comodo: apri l'app **File** → **Su iPhone** → **a-Shell** → `pycomeca-main`, crea lì `pycomeca.conf` e incolla queste righe, mettendo i TUOI valori. Per ora **lascia stare** la riga del deviceUuid: la riempi al passo dopo.
 
 ```
 COMELIT_USER=tua-email@comelit.example
 COMELIT_PASS=la-tua-password
-COMELIT_DEVICE_UUID=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001
 COMELIT_TOKEN=0123456789abcdef0123456789abcdef
 ```
 
-In alternativa, da a-Shell, puoi crearlo con l'editor integrato: `vim pycomeca.conf` (poi `i` per scrivere, `Esc` e `:wq` per salvare).
+In alternativa, da a-Shell, usa l'editor integrato: `vim pycomeca.conf` (`i` per scrivere, `Esc` poi `:wq` per salvare). Il file resta sul telefono, non va da nessuna parte.
 
-Il file resta sul telefono, non va da nessuna parte.
+## 5. Scopri il deviceUuid
 
-## 4. Prova (senza aprire niente)
+In a-Shell, dentro `pycomeca-main`:
+
+```
+python -m pycomeca.remote --devices
+```
+
+Con il solo login stampa l'elenco dei tuoi citofoni, ciascuno con il suo `uuid`, il nome e il modello. Copia l'`uuid` del tuo citofono e aggiungilo al file `pycomeca.conf`:
+
+```
+COMELIT_DEVICE_UUID=<l-uuid-che-hai-copiato>
+```
+
+Ora il file ha tutti e quattro i valori.
+
+## 6. Prova (senza aprire niente)
 
 In a-Shell, dentro `pycomeca-main`:
 
@@ -47,7 +71,7 @@ python -m pycomeca.remote --list
 
 Se stampa la configurazione con `Portone principale` (o il nome del tuo), sei connesso al citofono dal telefono: tutto funziona. Se dà errore, lancia `python -m pycomeca.remote --list --verbose` e guarda a che punto si ferma (login, ICE, PseudoTCP).
 
-## 5. Crea il comando "apri"
+## 7. Crea il comando "apri"
 
 a-Shell mette a disposizione un'azione per i Comandi Rapidi.
 
@@ -63,7 +87,7 @@ a-Shell mette a disposizione un'azione per i Comandi Rapidi.
 
 Al primo avvio iOS potrebbe chiedere il permesso di rete una volta: consenti.
 
-## 6. Rendilo un tap, come preferisci
+## 8. Rendilo un tap, come preferisci
 
 - **Icona sulla Home**: nel comando, menu condividi → **Aggiungi a schermata Home**. Un tap sull'icona apre.
 - **Siri**: di' **"Ehi Siri, apri portone"**, anche a schermo bloccato.

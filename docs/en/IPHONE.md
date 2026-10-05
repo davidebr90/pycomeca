@@ -22,22 +22,46 @@ cd pycomeca-main
 
 You are now in the project folder (`~/Documents/pycomeca-main`).
 
-## 3. Create the credentials file
+## 3. The four parameters: what they are and where to get them
 
-In the same folder create a `pycomeca.conf` file with your values. The easiest way: open the **Files** app → **On My iPhone** → **a-Shell** → `pycomeca-main`, create `pycomeca.conf` there and paste these lines with YOUR data (these are fictitious):
+All values are fictitious, they only show you the format.
+
+| Parameter | What it is | Where to get it |
+|---|---|---|
+| `COMELIT_USER` | your Comelit account email | the same you use to sign in to the official app |
+| `COMELIT_PASS` | account password | the same as the official app |
+| `COMELIT_DEVICE_UUID` | the intercom identifier (e.g. `1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001`) | you discover it yourself in step 5 with the `--devices` command |
+| `COMELIT_TOKEN` | the intercom's user-token, 32 hex characters (e.g. `0123456789abcdef0123456789abcdef`) | from the intercom's web page on port 8080 (settings backup, `users.cfg` file, a line like `9:4:"<32 hex>"`), or from the Android app database (`systems.token`). Details in [DATA](DATA.md) |
+
+## 4. Create the credentials file (first with 3 values)
+
+In the `pycomeca-main` folder create a `pycomeca.conf` file. The easiest way: open the **Files** app → **On My iPhone** → **a-Shell** → `pycomeca-main`, create `pycomeca.conf` there and paste these lines with YOUR values. For now **leave out** the deviceUuid line: you fill it in the next step.
 
 ```
 COMELIT_USER=your-email@comelit.example
 COMELIT_PASS=your-password
-COMELIT_DEVICE_UUID=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001
 COMELIT_TOKEN=0123456789abcdef0123456789abcdef
 ```
 
-Alternatively, from a-Shell, create it with the built-in editor: `vim pycomeca.conf` (then `i` to type, `Esc` and `:wq` to save).
+Alternatively, from a-Shell, use the built-in editor: `vim pycomeca.conf` (`i` to type, `Esc` then `:wq` to save). The file stays on the phone, it goes nowhere.
 
-The file stays on the phone, it goes nowhere.
+## 5. Discover the deviceUuid
 
-## 4. Test it (without opening anything)
+In a-Shell, inside `pycomeca-main`:
+
+```
+python -m pycomeca.remote --devices
+```
+
+With the login alone it prints the list of your intercoms, each with its `uuid`, name and model. Copy your intercom's `uuid` and add it to `pycomeca.conf`:
+
+```
+COMELIT_DEVICE_UUID=<the-uuid-you-copied>
+```
+
+Now the file has all four values.
+
+## 6. Test it (without opening anything)
 
 In a-Shell, inside `pycomeca-main`:
 
@@ -47,7 +71,7 @@ python -m pycomeca.remote --list
 
 If it prints the configuration with `Portone principale` (or your own name), you are connected to the intercom from the phone: everything works. If it errors, run `python -m pycomeca.remote --list --verbose` and see where it stops (login, ICE, PseudoTCP).
 
-## 5. Create the "open" command
+## 7. Create the "open" command
 
 a-Shell provides a Shortcuts action.
 
@@ -63,7 +87,7 @@ a-Shell provides a Shortcuts action.
 
 On first run iOS may ask for network permission once: allow it.
 
-## 6. Make it one tap, your choice
+## 8. Make it one tap, your choice
 
 - **Home Screen icon**: in the shortcut, share menu → **Add to Home Screen**. One tap on the icon opens.
 - **Siri**: say **"Hey Siri, apri portone"**, even on the lock screen.
