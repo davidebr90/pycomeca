@@ -123,6 +123,44 @@ Esiti possibili: `opened_confirmed`, `sent_unconfirmed` (inviato, nessun evento 
 | 24199 UDP | scoperta: inviando `INFO` il monitor risponde con i propri dati |
 | 8080 / 8443 | pagina web di amministrazione |
 
+## Sequenza di apertura byte per byte [D]
+
+Questi sono i byte che il client invia davvero per aprire, verificati dal vivo sul 6741W. Indirizzi anonimizzati: unità interna `SB000042`, posto esterno `SB100007`, relè 1.
+
+Elementi comuni:
+
+```
+caller      = "SB0000421" + 00      (indirizzo unita' + numero relè, poi zero)
+destination = "SB100007"  + 00
+suffix      = ff ff ff ff  + caller + destination + 00
+```
+
+Nota: il "caller" usa il numero di **relè** come suffisso, non il sottoindirizzo dell'unità. È una particolarità confermata sul filo.
+
+Prima si apre il canale CTPP e si invia la **registrazione transiente**:
+
+```
+c0 18 5c 8b 2b 73 00 11 00 40  [capability]  caller  10 0e 00 00 00 00 ff ff ff ff  caller  "SB000042" 00  00
+```
+
+dove `capability` è `ac 23` (profilo classic) o `18 c2`. Poi la **sequenza porta** (5 frame), nell'ordine richiesta, conferma, init, richiesta, conferma:
+
+```
+richiesta : 00 18 5c 8b 2c 74 00 00                          suffix     (prefisso 0x1800)
+conferma  : 20 18 5c 8b 2c 74 00 00                          suffix     (prefisso 0x1820)
+init      : c0 18 70 ab 29 9f 00 0d 00 2d  destination 00  [relè LE32]  suffix   (prefisso 0x18C0, azione 0x000d)
+```
+
+Per un **attuatore** (solo modulo 255, relè 1) la sequenza è di 3 frame (init, richiesta, conferma):
+
+```
+init      : c0 18 45 be 8f 5c 00 04 00 20 ff 01   suffix
+richiesta : 00 18 45 be 8f 5c 00 04               suffix
+conferma  : 20 18 45 be 8f 5c 00 04               suffix
+```
+
+Dopo l'invio si legge per circa due secondi: la conferma è l'evento `0x1860 / 0x0003` che nomina il posto esterno. Quei frame iniziali con timestamp fisso (`5c 8b 2c 74`, `45 be 8f 5c`, ...) sono costanti riproducibili usate dal client; il dispositivo li accetta e apre.
+
 ## Elenco completo dei canali
 
 Oltre a quelli usati nella sessione minima, l'app apre o incontra anche questi. Dove non ancora riprovato sul 6741W è marcato [R] (riferimento 6701W).

@@ -121,6 +121,44 @@ Possible outcomes: `opened_confirmed`, `sent_unconfirmed` (sent, no return event
 | 24199 UDP | discovery: sending `INFO`, the monitor replies with its own data |
 | 8080 / 8443 | web administration page |
 
+## Open sequence, byte by byte [D]
+
+These are the bytes the client actually sends to open, verified live on the 6741W. Addresses anonymised: internal unit `SB000042`, entrance panel `SB100007`, relay 1.
+
+Common elements:
+
+```
+caller      = "SB0000421" + 00      (unit address + relay number, then zero)
+destination = "SB100007"  + 00
+suffix      = ff ff ff ff  + caller + destination + 00
+```
+
+Note: the "caller" uses the **relay** number as a suffix, not the unit's sub-address. This is a quirk confirmed on the wire.
+
+First the CTPP channel is opened and the **transient registration** is sent:
+
+```
+c0 18 5c 8b 2b 73 00 11 00 40  [capability]  caller  10 0e 00 00 00 00 ff ff ff ff  caller  "SB000042" 00  00
+```
+
+where `capability` is `ac 23` (classic profile) or `18 c2`. Then the **door sequence** (5 frames), in the order request, confirm, init, request, confirm:
+
+```
+request : 00 18 5c 8b 2c 74 00 00                          suffix     (prefix 0x1800)
+confirm : 20 18 5c 8b 2c 74 00 00                          suffix     (prefix 0x1820)
+init    : c0 18 70 ab 29 9f 00 0d 00 2d  destination 00  [relay LE32]  suffix   (prefix 0x18C0, action 0x000d)
+```
+
+For an **actuator** (module 255, relay 1 only) the sequence is 3 frames (init, request, confirm):
+
+```
+init    : c0 18 45 be 8f 5c 00 04 00 20 ff 01   suffix
+request : 00 18 45 be 8f 5c 00 04               suffix
+confirm : 20 18 45 be 8f 5c 00 04               suffix
+```
+
+After sending, read for about two seconds: the confirmation is the `0x1860 / 0x0003` event that names the entrance panel. The initial frames with a fixed timestamp (`5c 8b 2c 74`, `45 be 8f 5c`, ...) are reproducible constants used by the client; the device accepts them and opens.
+
 ## Full channel list
 
 Beyond those used in the minimal session, the app also opens or meets these. Where not re-tested on the 6741W it is marked [R] (6701W reference).
