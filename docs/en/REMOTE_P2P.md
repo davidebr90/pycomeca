@@ -132,7 +132,7 @@ From byte 7 onward the stream carries the same frames described in [PROTOCOL.md]
 
 After the acknowledgement it proceeds as on the LAN: UAUT, UCFG, and possibly CTPP for opening.
 
-Roughly every 15 seconds the monitor sends a 29-byte frame on the `ECHO` channel. The client ignores it for now; for sessions of a few seconds there are no observed consequences.
+Roughly every 15 seconds the monitor sends text frames on the `ECHO` channel: `echo <ISO 8601 timestamp>` (29 bytes) and a `KEEP-ALIVE` frame. The client ignores them for now; for sessions of a few seconds there are no observed consequences. For long sessions they should be echoed back.
 
 ## Test status
 

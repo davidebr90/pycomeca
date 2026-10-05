@@ -145,6 +145,15 @@ Oltre a quelli usati nella sessione minima, l'app apre o incontra anche questi. 
 
 Il campo "tipo" è quello osservato in chiaro (per nomi di quattro lettere vale spesso 7). I canali media si aprono con un byte finale a 1.
 
+## Canale ECHO
+
+Sul percorso remoto il dispositivo apre un canale ECHO verso il client e lo usa come keepalive. Osservato in chiaro sul 6741W [D]: scambia frame di testo.
+
+- frame "echo" da 29 byte, ASCII, con un orario ISO 8601: `echo 2026-01-01T12:00:00.000Z`;
+- un frame `KEEP-ALIVE` (testo ASCII) sul canale assegnato.
+
+Il client deve confermare l'apertura del canale (vedi "Canali aperti dal monitor"). Per sessioni lunghe conviene rispondere ai frame echo; per una singola apertura basta confermarne l'apertura e ignorare i keepalive successivi.
+
 ## CTPP: i tre regimi di timestamp
 
 Il canale CTPP usa tre modi diversi di calcolare l'orario nelle conferme. Mescolarli fa smettere il dispositivo di inviare eventi, in silenzio.

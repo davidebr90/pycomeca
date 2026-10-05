@@ -2,10 +2,12 @@
 
 How a full call with the entrance panel works (video and two-way audio) and how the media flows. Italian version: [docs/CHIAMATA.md](../CHIAMATA.md).
 
-This part is **not implemented** in PyCOMECA and **was not re-tested on the 6741W**: it is documented for completeness, mostly from public references verified on captures for the 6701W. Evidence level:
+This part is **not implemented** in PyCOMECA, but the **signalling** was observed in clear text on a real video call captured on the 6741W (cloud path): call start, codec, video configuration with the resolutions, and door opening during the call. The media decoding details (H.264, PCMA) remain from the 6701W reference. Evidence level:
 
-- **[R]** 6701W reference, not re-tested here;
-- **[D]** also observed on the 6741W.
+- **[D]** observed on the 6741W (real bytes);
+- **[R]** 6701W reference, not re-tested here.
+
+The real frames (anonymised) are at the bottom, in the "Frames observed on the 6741W" section.
 
 Frame framing and the base channels are in [PROTOCOL](PROTOCOL.md); JSON messages in [MESSAGES](MESSAGES.md).
 
@@ -19,7 +21,7 @@ Frame framing and the base channels are in [PROTOCOL](PROTOCOL.md); JSON message
 
 Media channels are opened like a UAUT-type channel but with a final byte (`trailing_byte`) set to 1. [R]
 
-## Client-initiated (outbound) [R]
+## Client-initiated (outbound) [D] (signalling)
 
 Sequence, for an outgoing call toward the entrance panel:
 
@@ -34,7 +36,7 @@ Sequence, for an outgoing call toward the entrance panel:
 
 Lease renewal (~30 s, the device sends `0x1840 / 0x0003`): redo the sequence on the same TCP connection, without reconnecting.
 
-## Incoming call (inbound) [R]
+## Incoming call (inbound) [D] signalling / [R] inbound not re-captured
 
 - **passive**: acknowledge the ring with a time derived from the ring time; a burst of RTPC, UDPM and codec (parameter `0x07`); `rtpc2_ready` `0x1840 / 0x0003` with flag `0x000A` (mandatory); `VIDEO_CONFIG` at 320x240. The video flows but the call is not yet answered;
 - **answer**: `answer_peer` plus `call_accepted` `0x1840 / 0x0002` (roles reversed: here the client sends it). Audio (PCMA) starts on the RTPC channel the device opened.
@@ -61,6 +63,42 @@ Standard RFC 3550 header, 12 bytes, big-endian. Payload type in the second byte:
 
 Two approaches, neither included here: a local RTSP server offering H.264 and PCMA to a player such as VLC or to go2rtc, or direct consumption of the NAL and audio queues in a custom interface.
 
-## To validate on the 6741W
+## Frames observed on the 6741W [D]
 
-Actual resolutions and bitrates, the real value of the registration-renewal increment (a wrong value silently kills events), the three CTPP timestamp regimes during a call, and the actual media capability. Until retaken on our own capture, these stay marked [R].
+From a real video call captured on the cloud path. Addresses anonymised (internal unit `SB000042`, entrance panel `SB100007`), counters and timestamps replaced with `..`. All on the call's CTPP channel.
+
+`call_init` 0x18C0 / 0x0028, 72 bytes:
+
+```
+c018 ....  0028 0001  SB000042\0  SB100007\0  0001 ..........  SB000042\0  4949  ffffffff  SB100007\0  SB100007\0\0
+```
+
+`codec` 0x1840 / 0x0008, 40 bytes - the codec parameter is `0x0027`:
+
+```
+4018 ....  0008 0003 49  0027  000000 00  ffffffff  SB100007\0  SB100007\0\0
+```
+
+`VIDEO_CONFIG` 0x1840 / 0x001A, 60 bytes - it carries the two resolutions, **800x480** (0x0320 x 0x01E0) and **320x240** (0x0140 x 0x00F0):
+
+```
+4018 ....  001a 0011 1432 ........  ....  ffff 00000000  [03 20][01 e0]  [01 40][00 f0]  0010 00000000  ffffffff  SB100007\0  SB100007\0\0
+```
+
+`open during the call` 0x1840 / 0x000D, 48 bytes - a single message, param `0x002D`:
+
+```
+4018 ....  000d 002d  SB100007\0  0001 000000  ffffffff  SB100007\0  SB100007\0\0
+```
+
+`CTPP registration` 0x18C0 / 0x0011, 52 bytes, with capability `0x0040`:
+
+```
+c018 ....  0011 0040 ....  SB000042\0  100e 00000000  ffffffff  SB100007\0  SB000042\0\0
+```
+
+Also confirmed live: registration renewal 0x1860 / 0x0010, call end 0x1860 / 0x000A, `rtpc_link` 0x1840 / 0x000A, and the channel-open ACK when the device opens (`cd ab 02 00 04 00 00 00 <id> 00 00`).
+
+## Still to validate on the 6741W
+
+The actual bitrate (SD/HD), the real value of the registration-renewal increment (a wrong value silently kills events), and the decoding of the real media (H.264 FU-A, PCMA) stay [R] until retaken on a dedicated capture.

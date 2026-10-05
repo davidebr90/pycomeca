@@ -134,7 +134,7 @@ Dal byte 7 in poi il flusso contiene gli stessi frame descritti in [PROTOCOL.md]
 
 Dopo la conferma si procede come in locale: UAUT, UCFG, ed eventualmente CTPP per l'apertura.
 
-Ogni 15 secondi circa il monitor invia un frame di 29 byte sul canale `ECHO`. Il client per ora lo ignora; per sessioni di pochi secondi non ha conseguenze osservate.
+Ogni 15 secondi circa il monitor invia sul canale `ECHO` un frame di testo: `echo <orario ISO 8601>` (29 byte) e un frame `KEEP-ALIVE`. Il client per ora li ignora; per sessioni di pochi secondi non ha conseguenze osservate. Per sessioni lunghe andrebbero rimandati indietro.
 
 ## Stato delle prove
 

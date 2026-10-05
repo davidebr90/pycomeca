@@ -54,20 +54,26 @@ Python 3.11 or later. No packages to install.
 
 Local path, from your home network:
 
-```
-cp installation.example.json installation.local.json   # then set your intercom's IP
-export COMELIT_TOKEN=<32-hex user-token>
+```bash
+# create your own config from the example, then edit it:
+cp installation.example.json installation.local.json
+# in installation.local.json replace the placeholder IP 192.168.1.50 with your intercom's
+
+# the 32-hex token below is fictitious: use your own
+export COMELIT_TOKEN=0123456789abcdef0123456789abcdef
+
 python pycomeca_ctl.py --list
 python pycomeca_ctl.py --open "Portone principale"
 ```
 
-Remote path, from any network:
+Remote path, from any network (the values below are fictitious, use your own):
 
-```
-export COMELIT_USER=<Comelit account email>
-export COMELIT_PASS=<Comelit account password>
-export COMELIT_DEVICE_UUID=<intercom deviceUuid>
-export COMELIT_TOKEN=<32-hex user-token>
+```bash
+export COMELIT_USER=name@example.com
+export COMELIT_PASS=your-comelit-password
+export COMELIT_DEVICE_UUID=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001
+export COMELIT_TOKEN=0123456789abcdef0123456789abcdef
+
 python -m pycomeca.remote --list
 python -m pycomeca.remote --open "Portone principale"
 ```

@@ -143,6 +143,15 @@ Beyond those used in the minimal session, the app also opens or meets these. Whe
 
 The "type" field is the one observed in clear text (for four-letter names it is often 7). Media channels are opened with a final byte set to 1.
 
+## ECHO channel
+
+On the remote path the device opens an ECHO channel toward the client and uses it as a keepalive. Observed in clear text on the 6741W [D]: it exchanges text frames.
+
+- a 29-byte "echo" frame, ASCII, with an ISO 8601 timestamp: `echo 2026-01-01T12:00:00.000Z`;
+- a `KEEP-ALIVE` frame (ASCII text) on the assigned channel.
+
+The client must acknowledge the channel open (see "Channels opened by the monitor"). For long sessions it is best to answer the echo frames; for a single opening it is enough to acknowledge the open and ignore the later keepalives.
+
 ## CTPP: the three timestamp regimes
 
 The CTPP channel uses three different ways of computing the timestamp in acknowledgements. Mixing them makes the device stop sending events, silently.

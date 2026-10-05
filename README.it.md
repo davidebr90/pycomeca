@@ -54,20 +54,26 @@ Serve Python 3.11 o successivo. Nessun pacchetto da installare.
 
 Percorso locale, dalla rete di casa:
 
-```
-cp installation.example.json installation.local.json   # poi metti l'IP del tuo citofono
-export COMELIT_TOKEN=<user-token di 32 caratteri hex>
+```bash
+# crea il tuo file di configurazione dall'esempio, poi modificalo:
+cp installation.example.json installation.local.json
+# in installation.local.json sostituisci l'IP di esempio 192.168.1.50 con quello del tuo citofono
+
+# il token di 32 cifre qui sotto e' fittizio: metti il tuo
+export COMELIT_TOKEN=0123456789abcdef0123456789abcdef
+
 python pycomeca_ctl.py --list
 python pycomeca_ctl.py --open "Portone principale"
 ```
 
-Percorso remoto, da qualsiasi rete:
+Percorso remoto, da qualsiasi rete (i valori qui sotto sono fittizi, metti i tuoi):
 
-```
-export COMELIT_USER=<email account Comelit>
-export COMELIT_PASS=<password account Comelit>
-export COMELIT_DEVICE_UUID=<deviceUuid del citofono>
-export COMELIT_TOKEN=<user-token di 32 caratteri hex>
+```bash
+export COMELIT_USER=nome@example.com
+export COMELIT_PASS=la-tua-password-comelit
+export COMELIT_DEVICE_UUID=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001
+export COMELIT_TOKEN=0123456789abcdef0123456789abcdef
+
 python -m pycomeca.remote --list
 python -m pycomeca.remote --open "Portone principale"
 ```
