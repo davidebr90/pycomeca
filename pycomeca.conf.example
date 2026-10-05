@@ -1,0 +1,11 @@
+# Copia questo file in ~/.pycomeca.conf (o passalo con --config) e metti i TUOI valori.
+# Copy this file to ~/.pycomeca.conf (or pass it with --config) and set YOUR values.
+# I valori qui sotto sono FITTIZI. / The values below are FICTITIOUS.
+
+COMELIT_USER=name@example.com
+COMELIT_PASS=your-comelit-password
+COMELIT_DEVICE_UUID=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001
+COMELIT_TOKEN=0123456789abcdef0123456789abcdef
+
+# opzionale: forza sempre il percorso esterno (relay). / optional: always force the external relay path.
+# PYCOMECA_RELAY_ONLY=1

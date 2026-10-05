@@ -95,7 +95,7 @@ python -m unittest discover -s tests
 - `pycomeca_bridge.py` small local HTTP service (`POST /open`) to keep behind a VPN.
 - `relay/` an alternative without the Comelit cloud: a PHP page on shared hosting and a small in-home agent that only makes outbound connections. See [relay/README.md](relay/README.md).
 - `tools/frida/` scripts used to observe the app during the study.
-- `docs/` notes, in English under [docs/en/](docs/en/) and in Italian under [docs/](docs/): [protocol](docs/en/PROTOCOL.md), [message catalog](docs/en/MESSAGES.md), [video call](docs/en/CALL.md), [official app internals](docs/en/OFFICIAL_APP.md), [remote path](docs/en/REMOTE_P2P.md), [study method](docs/en/DEBUG_FLOW.md), [required data](docs/en/DATA.md).
+- `docs/` notes, in English under [docs/en/](docs/en/) and in Italian under [docs/](docs/): [protocol](docs/en/PROTOCOL.md), [message catalog](docs/en/MESSAGES.md), [video call](docs/en/CALL.md), [official app internals](docs/en/OFFICIAL_APP.md), [remote path](docs/en/REMOTE_P2P.md), [study method](docs/en/DEBUG_FLOW.md), [required data](docs/en/DATA.md), [one-tap from iPhone](docs/en/IPHONE.md).
 
 ## Warnings
 

@@ -11,3 +11,7 @@ captures/
 relay/postino_jobs.sqlite3*
 relay/bridge_state.json*
 relay/.bridge-state-*
+
+# credenziali locali: mai nel repo
+pycomeca.conf
+.pycomeca.conf

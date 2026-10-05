@@ -3,10 +3,15 @@
     python -m pycomeca.remote --list
     python -m pycomeca.remote --open "Portone principale"
 
-Credentials come from the environment, never the command line:
+Credentials come from the environment or from a config file (handy on a phone,
+so they are not typed into a shortcut every time):
     COMELIT_USER / COMELIT_PASS   OAuth2 account login
     COMELIT_DEVICE_UUID           deviceUuid (from jfs/get; identifies the device)
     COMELIT_TOKEN                 viper user-token (32 hex); else read from the DB
+
+The config file is a plain list of KEY=VALUE lines. It is looked up at --config,
+then $PYCOMECA_CONFIG, then ~/.pycomeca.conf, then ./pycomeca.conf. Environment
+variables take precedence over the file. See pycomeca.conf.example.
 
 Nothing opens the door unless --open is given. The door command physically
 opens the entrance, so it is never the default.
@@ -17,6 +22,7 @@ import argparse
 import json
 import logging
 import os
+from pathlib import Path
 import secrets
 import sys
 
@@ -24,10 +30,36 @@ from ..profile import Profile, redact
 from .session import RemoteIconaClient
 from . import p2p
 
+_CONFIG_KEYS = {"COMELIT_USER", "COMELIT_PASS", "COMELIT_DEVICE_UUID",
+                "COMELIT_TOKEN", "PYCOMECA_RELAY_ONLY"}
+
 
 def _ice_credentials() -> tuple[str, str]:
     # Comelit style: 8-hex ufrag, 24-hex pwd. Regenerated every session.
     return secrets.token_hex(4), secrets.token_hex(12)
+
+
+def load_config(explicit: str | None) -> str | None:
+    """Fill missing env vars from a KEY=VALUE file. Returns the file used."""
+    candidates = [explicit, os.environ.get("PYCOMECA_CONFIG"),
+                  str(Path.home() / ".pycomeca.conf"), "pycomeca.conf"]
+    for cand in candidates:
+        if not cand:
+            continue
+        path = Path(cand).expanduser()
+        if not path.is_file():
+            continue
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key in _CONFIG_KEYS and not os.environ.get(key):
+                os.environ[key] = value
+        return str(path)
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -37,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--open", metavar="TARGET", help="apri il target indicato (chiave door:N o nome)")
     parser.add_argument("--relay-only", action="store_true",
                         help="forza il percorso esterno: solo candidato relay del device, niente LAN")
+    parser.add_argument("--config", metavar="FILE", help="file KEY=VALUE con le credenziali")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args(argv)
     if not args.list and not args.open:
@@ -44,6 +77,10 @@ def main(argv: list[str] | None = None) -> int:
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
+
+    load_config(args.config)
+    if not args.relay_only and os.environ.get("PYCOMECA_RELAY_ONLY", "").strip().lower() in ("1", "true", "yes"):
+        args.relay_only = True
 
     user = os.environ.get("COMELIT_USER")
     password = os.environ.get("COMELIT_PASS")
