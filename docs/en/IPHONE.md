@@ -31,7 +31,7 @@ All values are fictitious, they only show you the format.
 | `COMELIT_USER` | your Comelit account email | the same you use to sign in to the official app |
 | `COMELIT_PASS` | account password | the same as the official app |
 | `COMELIT_DEVICE_UUID` | the intercom identifier (e.g. `1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001`) | you discover it yourself in step 5 with the `--devices` command |
-| `COMELIT_TOKEN` | the intercom's user-token, 32 hex characters (e.g. `0123456789abcdef0123456789abcdef`) | from the intercom's web page on port 8080 (settings backup, `users.cfg` file, a line like `9:4:"<32 hex>"`), or from the Android app database (`systems.token`). Details in [DATA](DATA.md) |
+| `COMELIT_TOKEN` | the intercom's user-token, 32 hex characters (e.g. `0123456789abcdef0123456789abcdef`) | from the intercom's web page (`http://<ip>:8080`, "Extender" page, default password `comelit`, Backup section, `users.cfg` file, line `9:4:"<32 hex>"`). Step-by-step in [DATA - How to get the user-token](DATA.md#how-to-get-the-user-token) |
 
 ## 4. Create the credentials file (first with 3 values)
 

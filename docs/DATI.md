@@ -16,6 +16,34 @@ Tutti i valori di esempio sono inventati. Hanno però la stessa forma di quelli 
 
 Il user-token non ha una scadenza osservata. Chi lo possiede ed è in rete locale può aprire: va trattato come una chiave.
 
+### Come ottenere il user-token
+
+Due strade. La prima non richiede né app né cattura.
+
+**A) Dalla pagina web del citofono (consigliata)**
+
+1. Trova l'IP del citofono in rete locale (nell'elenco dispositivi del router). Negli esempi usiamo `192.168.1.50`.
+2. Aprilo in un browser, provando in quest'ordine:
+   - `http://192.168.1.50:8080`
+   - `https://192.168.1.50:8443` (il certificato non è valido: accetta l'avviso del browser per proseguire)
+3. Si apre una pagina chiamata **"Extender"**. L'accesso è a **sola password**, senza nome utente. La password di fabbrica dell'installatore è **`comelit`**. Se qualcuno l'ha cambiata, usa quella impostata.
+4. Vai nella sezione **Backup / Ripristino** e scarica il backup della configurazione (un file `.tar` o `.tar.gz`).
+5. Estrai l'archivio; dentro trovi `users.cfg` (potrebbe essere compresso con gzip: decomprimilo). Cerca una riga con il formato:
+
+   ```
+   9:4:"0123456789abcdef0123456789abcdef"
+   ```
+
+   Le 32 cifre esadecimali tra virgolette sono il tuo `user-token`.
+
+Verificato sul 6741W: la web UI "Extender" risponde su 8080 e 8443, login a sola password. Su modelli diversi etichette e percorsi possono cambiare.
+
+**B) Dal database dell'app Android**
+
+Se hai accesso al file dell'app (`bigapp_db.db`), il token è nella tabella `systems`, colonna `token`. Richiede un dispositivo Android con l'app e, di solito, i permessi di root per leggere il file.
+
+In entrambi i casi il token è un segreto: non pubblicarlo e non committarlo.
+
 ## Dati che il citofono restituisce
 
 Li legge il client da solo con `--list`; non vanno configurati a mano.

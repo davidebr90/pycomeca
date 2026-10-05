@@ -31,7 +31,7 @@ Tutti i valori sono inventati, servono solo a farti riconoscere il formato.
 | `COMELIT_USER` | email del tuo account Comelit | la stessa che usi per entrare nell'app ufficiale |
 | `COMELIT_PASS` | password dell'account | la stessa dell'app ufficiale |
 | `COMELIT_DEVICE_UUID` | identificativo del citofono (es. `1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d-00001`) | lo scopri da solo al passo 4 con il comando `--devices` |
-| `COMELIT_TOKEN` | user-token del citofono, 32 cifre esadecimali (es. `0123456789abcdef0123456789abcdef`) | dalla pagina web del citofono sulla porta 8080 (backup impostazioni, file `users.cfg`, riga tipo `9:4:"<32 esadecimali>"`), oppure dal database dell'app Android (`systems.token`). Dettagli in [DATI](DATI.md) |
+| `COMELIT_TOKEN` | user-token del citofono, 32 cifre esadecimali (es. `0123456789abcdef0123456789abcdef`) | dalla pagina web del citofono (`http://<ip>:8080`, pagina "Extender", password di default `comelit`, sezione Backup, file `users.cfg`, riga `9:4:"<32 hex>"`). Procedura passo-passo in [DATI - Come ottenere il user-token](DATI.md#come-ottenere-il-user-token) |
 
 ## 4. Crea il file delle credenziali (prima con 3 valori)
 
