@@ -49,15 +49,27 @@ Differenze principali tra uscente ed entrante: codec `0x27` contro `0x07`; risol
 - il tasto HD alterna a mano le due risoluzioni, cambiando risoluzione preferita e bitrate;
 - il video è H.264. I NAL singoli (tipi 1..23, IDR 5, SPS 7, PPS 8) diventano Annex-B con prefisso `00 00 00 01`; i frammenti FU-A (tipo 28) si riassemblano con i bit di inizio e fine e l'header NAL ricostruito.
 
-## Audio [R]
+## Audio [R] (non presente nella nostra cattura)
+
+Dai riferimenti 6701W, non ancora osservato sul 6741W:
 
 - G.711 **PCMA** (A-law), 8 kHz, frame da 20 ms uguali a 160 byte esatti;
 - il microfono parte muto; lo si attiva con il comando di stato del microfono;
 - in uscita: timestamp +160 per frame, sequenza +1 per frame, silenzio come byte `0xD5` ripetuto.
 
-## RTP [D]
+Per vederlo dal vivo serve una chiamata realmente **risposta** con audio attivo: nella cattura di studio l'audio non è mai partito.
 
-Header standard RFC 3550, 12 byte, big-endian. Tipo di payload nel secondo byte: `PT=8` PCMA, `PT=0` PCMU, un tipo dinamico per H.264. Su UDP il dispositivo rimanda l'RTP incapsulato nel framing ICONA, da cui va estratto; su TCP arriva già pulito e inizia con `0x80`.
+## RTP e media [D parziale]
+
+Header standard RFC 3550, 12 byte, big-endian. Tipo di payload nel secondo byte: `PT=8` PCMA (audio), un tipo dinamico per H.264 (video).
+
+Cosa è stato **osservato** sul 6741W, dalla cattura di una videochiamata sul percorso cloud:
+
+- il media NON passa dal flusso affidabile PseudoTCP: viaggia come **UDP grezzo sullo stesso percorso ICE**, ogni pacchetto incapsulato nel framing ICONA (8 byte di header, poi l'RTP che inizia con `0x80`);
+- **video dal dispositivo verso l'app**: presente, con payload type dinamico `PT=99` (H.264). [D]
+- **audio**: nella nostra cattura **non presente** in nessuna direzione; nessun media è partito dall'app verso il dispositivo. La sessione era una videochiamata a senso unico (solo video in arrivo), tipica dell'emulatore dove la "risposta" con audio non viene completata.
+
+Quindi: il trasporto del media (ICONA su UDP grezzo) e il video in arrivo sono [D]; l'audio bidirezionale e il media in uscita restano [R], da catturare su una chiamata realmente risposta.
 
 ## Esposizione
 

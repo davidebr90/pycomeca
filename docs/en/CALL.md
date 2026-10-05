@@ -49,15 +49,27 @@ Main differences between outgoing and incoming: codec `0x27` vs `0x07`; resoluti
 - the HD button toggles the two resolutions by hand, changing the preferred resolution and bitrate;
 - the video is H.264. Single NALs (types 1..23, IDR 5, SPS 7, PPS 8) become Annex-B with the `00 00 00 01` prefix; FU-A fragments (type 28) are reassembled with the start and end bits and the reconstructed NAL header.
 
-## Audio [R]
+## Audio [R] (not present in our capture)
+
+From the 6701W references, not yet observed on the 6741W:
 
 - G.711 **PCMA** (A-law), 8 kHz, 20 ms frames equal to exactly 160 bytes;
 - the microphone starts muted; it is enabled with the microphone-state command;
 - outgoing: timestamp +160 per frame, sequence +1 per frame, silence as the byte `0xD5` repeated.
 
-## RTP [D]
+To see it live, a call that is actually **answered** with active audio is needed: in the study capture the audio never started.
 
-Standard RFC 3550 header, 12 bytes, big-endian. Payload type in the second byte: `PT=8` PCMA, `PT=0` PCMU, a dynamic type for H.264. Over UDP the device sends the RTP wrapped in the ICONA framing, from which it must be extracted; over TCP it arrives already clean and starts with `0x80`.
+## RTP and media [partially D]
+
+Standard RFC 3550 header, 12 bytes, big-endian. Payload type in the second byte: `PT=8` PCMA (audio), a dynamic type for H.264 (video).
+
+What was **observed** on the 6741W, from a video-call capture on the cloud path:
+
+- the media does NOT go over the reliable PseudoTCP stream: it travels as **raw UDP on the same ICE path**, each packet wrapped in the ICONA framing (8-byte header, then the RTP starting with `0x80`);
+- **video from the device to the app**: present, with dynamic payload type `PT=99` (H.264). [D]
+- **audio**: in our capture **not present** in either direction; no media went from the app to the device. The session was a one-way video call (incoming video only), typical of the emulator where the audio "answer" is not completed.
+
+So: the media transport (ICONA over raw UDP) and the incoming video are [D]; bidirectional audio and outgoing media stay [R], to be captured on a call that is actually answered.
 
 ## Exposure
 
